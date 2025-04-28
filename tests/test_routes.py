@@ -166,6 +166,23 @@ class TestProductRoutes(TestCase):
     #
     # ADD YOUR TEST CASES HERE
     #
+    # Get single product
+    def test_get_product(self):
+        test_product = self._create_products(1)[0]
+        respose = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(respose.status_code, status.HTTP_200_OK)
+        data = respose.get_json()
+        self.assertEqual(data["name"], test_product.name)
+        
+    
+    # Get product not found
+    def test_get_product_not_found(self):
+        respose = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(respose.status_code, status.HTTP_404_NOT_FOUND)
+        data = respose.get_json()
+        self.assertIn(f"Product '0' wasn't found.", data["message"],)
+        
+        
 
     ######################################################################
     # Utility functions
