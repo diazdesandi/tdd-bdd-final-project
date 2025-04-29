@@ -30,8 +30,9 @@ from decimal import Decimal
 from unittest import TestCase
 from service import app
 from service.common import status
-from service.models import db, init_db, Product
+from service.models import db, init_db, Product, Category
 from tests.factories import ProductFactory
+from urllib.parse import quote_plus
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
@@ -130,20 +131,6 @@ class TestProductRoutes(TestCase):
         self.assertEqual(new_product["available"], test_product.available)
         self.assertEqual(new_product["category"], test_product.category.name)
 
-        #
-        # Uncomment this code once READ is implemented
-        #
-
-        # # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
-        # self.assertEqual(Decimal(new_product["price"]), test_product.price)
-        # self.assertEqual(new_product["available"], test_product.available)
-        # self.assertEqual(new_product["category"], test_product.category.name)
-
     def test_create_product_with_no_name(self):
         """It should not Create a Product without a name"""
         product = self._create_products()[0]
@@ -163,9 +150,6 @@ class TestProductRoutes(TestCase):
         response = self.client.post(BASE_URL, data={}, content_type="plain/text")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    #
-    # ADD YOUR TEST CASES HERE
-    #
     # Get single product
     def test_get_product(self):
         test_product = self._create_products(1)[0]
@@ -173,8 +157,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(respose.status_code, status.HTTP_200_OK)
         data = respose.get_json()
         self.assertEqual(data["name"], test_product.name)
-        
-    
+            
     # Get product not found
     def test_get_product_not_found(self):
         respose = self.client.get(f"{BASE_URL}/0")
@@ -209,7 +192,6 @@ class TestProductRoutes(TestCase):
     
     # List all products    
     def test_get_product_list(self):
-        """It should Get a list of Products"""
         self._create_products(5)
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -252,6 +234,7 @@ class TestProductRoutes(TestCase):
         products = self._create_products(10)
         available_products = [product for product in products if product.available is True]
         available_count = len(available_products)        
+        
         response = self.client.get(
             BASE_URL, query_string="available=true"
         )
@@ -260,7 +243,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(len(data), available_count)
         
         for product in data:
-            self.assertEqual(product["available"], True)        
+            self.assertEqual(product["available"], True)      
 
     ######################################################################
     # Utility functions
